@@ -1,0 +1,22 @@
+# Optional: only here to make a local PostgreSQL instance easy to start.
+# The application itself has no dependency on Docker.
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: media-monitoring-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: media_monitoring
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d media_monitoring']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:
