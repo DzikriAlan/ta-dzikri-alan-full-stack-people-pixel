@@ -7,7 +7,7 @@ interface ZodIssueDetail {
   message: string;
 }
 
-function formatZodIssues(error: ZodError): ZodIssueDetail[] {
+export function formatZodIssues(error: ZodError): ZodIssueDetail[] {
   return error.issues.map((issue) => ({
     path: issue.path.join('.') || '(root)',
     message: issue.message,
@@ -15,7 +15,9 @@ function formatZodIssues(error: ZodError): ZodIssueDetail[] {
 }
 
 function body(code: string, message: string, details?: unknown): ErrorResponseBody {
-  return details === undefined ? { error: { code, message } } : { error: { code, message, details } };
+  return details === undefined
+    ? { error: { code, message } }
+    : { error: { code, message, details } };
 }
 
 /**
@@ -43,30 +45,33 @@ export function registerErrorHandler(app: FastifyInstance): void {
       return;
     }
 
-    // Fastify surfaces malformed JSON and body-limit violations as coded errors
-    // before any handler runs, so they are translated here rather than in routes.
-    if (error.code === 'FST_ERR_CTP_INVALID_MEDIA_TYPE') {
-      reply
-        .status(415)
-        .send(body('UNSUPPORTED_MEDIA_TYPE', 'Content-Type must be application/json'));
-      return;
-    }
-
-    if (error.code === 'FST_ERR_CTP_EMPTY_JSON_BODY' || error.statusCode === 400) {
-      reply.status(400).send(body('INVALID_JSON', 'Request body is not valid JSON'));
-      return;
-    }
-
-    if (error.code === 'FST_ERR_CTP_BODY_TOO_LARGE' || error.statusCode === 413) {
-      reply
-        .status(413)
-        .send(body('PAYLOAD_TOO_LARGE', 'Request body exceeds the maximum accepted size'));
-      return;
+    // Fastify rejects malformed JSON, wrong content types and oversized bodies
+    // before any handler runs. Each case is matched on its specific Fastify
+    // error code -- never on a bare `statusCode === 400`, which would mislabel
+    // every unrelated 400 as a JSON syntax error. Codes verified against
+    // Fastify 5 rather than assumed.
+    switch (error.code) {
+      case 'FST_ERR_CTP_INVALID_MEDIA_TYPE':
+        reply
+          .status(415)
+          .send(body('UNSUPPORTED_MEDIA_TYPE', 'Content-Type must be application/json'));
+        return;
+      case 'FST_ERR_CTP_INVALID_JSON_BODY':
+        reply.status(400).send(body('INVALID_JSON', 'Request body is not valid JSON'));
+        return;
+      case 'FST_ERR_CTP_EMPTY_JSON_BODY':
+        reply.status(400).send(body('EMPTY_BODY', 'Request body must not be empty'));
+        return;
+      case 'FST_ERR_CTP_BODY_TOO_LARGE':
+        reply
+          .status(413)
+          .send(body('PAYLOAD_TOO_LARGE', 'Request body exceeds the maximum accepted size'));
+        return;
+      default:
+        break;
     }
 
     request.log.error({ err: error }, 'Unhandled error while processing request');
-    reply
-      .status(500)
-      .send(body('INTERNAL_SERVER_ERROR', 'An unexpected error occurred'));
+    reply.status(500).send(body('INTERNAL_SERVER_ERROR', 'An unexpected error occurred'));
   });
 }
