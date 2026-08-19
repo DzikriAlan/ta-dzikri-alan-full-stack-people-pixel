@@ -87,6 +87,38 @@
     "engagement": "455"
   },
   {
+    "source": "Kompas.com",
+    "title": "Ekspor Manufaktur Naik 8 Persen",
+    "content": "<p>Ekspor manufaktur tercatat naik.</p>",
+    "url": "https://www.kompas.com/ekonomi/read/2024/03/16/manufaktur",
+    "published_at": "16 Maret 2024 09:15 WIB",
+    "author": "Budi Santoso",
+    "engagement": "1.240"
+  },
+  {
+    "source": "Detik",
+    "title": "Startup Lokal Raih Pendanaan",
+    "content": "Startup lokal mengumumkan pendanaan seri A.",
+    "url": "https://detik.com/ekonomi/pendanaan-startup",
+    "published_at": "14 Agu 2024",
+    "engagement": "12rb"
+  },
+  {
+    "source": "Antara News",
+    "title": "Kunjungan Wisatawan Meningkat",
+    "content": "<div>Kunjungan wisatawan naik dibanding tahun lalu.</div>",
+    "url": "https://antaranews.com/berita/wisatawan-meningkat",
+    "published_at": "2024.03.11",
+    "engagement": "1,5 jt"
+  },
+  {
+    "source": "Instagram",
+    "content": "Pelayanan cepat, terima kasih tim! &#128077;",
+    "url": null,
+    "published_at": "3 Nopember 2024 20:05 WITA",
+    "engagement": "3 210"
+  },
+  {
     "source": "",
     "title": "Record with no usable source",
     "content": "This record must be rejected, not filed under 'unknown'.",
