@@ -120,8 +120,38 @@ describe('date parsing', () => {
     expect(iso('1710491400000')).toBe('2024-03-15T08:30:00.000Z');
   });
 
+  it('parses Indonesian month names, including archaic spellings', () => {
+    expect(iso('15 Maret 2024')).toBe('2024-03-15T00:00:00.000Z');
+    expect(iso('1 Agustus 2024')).toBe('2024-08-01T00:00:00.000Z');
+    expect(iso('5 Des 2024')).toBe('2024-12-05T00:00:00.000Z');
+    expect(iso('3 Nopember 2024')).toBe('2024-11-03T00:00:00.000Z');
+  });
+
+  it('keeps the wall-clock time attached to a named-month date', () => {
+    expect(iso('15 Maret 2024 08:30')).toBe('2024-03-15T08:30:00.000Z');
+    expect(iso('March 15, 2024 08.30.15')).toBe('2024-03-15T08:30:15.000Z');
+  });
+
+  it('converts Indonesian local timezone labels to UTC', () => {
+    expect(iso('15 Maret 2024 08:30 WIB')).toBe('2024-03-15T01:30:00.000Z');
+    expect(iso('15 Maret 2024 08:30 WITA')).toBe('2024-03-15T00:30:00.000Z');
+    expect(iso('2024-03-15 08:30 WIT')).toBe('2024-03-14T23:30:00.000Z');
+  });
+
+  it('lets an explicit numeric offset win over a trailing label', () => {
+    expect(iso('2024-03-15T08:30:00Z')).toBe('2024-03-15T08:30:00.000Z');
+    expect(iso('2024-03-15T08:30:00+07:00')).toBe('2024-03-15T01:30:00.000Z');
+  });
+
+  it('parses dot-separated year-first dates', () => {
+    expect(iso('2024.03.15')).toBe('2024-03-15T00:00:00.000Z');
+  });
+
   it('returns null for missing or unparsable values instead of inventing a date', () => {
-    for (const bad of [null, undefined, '', 'yesterday', 'N/A', '2024-02-31', '1799-01-01', {}]) {
+    for (const bad of [
+      null, undefined, '', 'yesterday', 'N/A', '2024-02-31', '1799-01-01', {},
+      '2 jam yang lalu', 'kemarin',
+    ]) {
       expect(parsePublishedAt(bad)).toBeNull();
     }
   });
@@ -135,10 +165,29 @@ describe('numeric strings', () => {
     expect(normalizeCount('0')).toBe(0);
   });
 
+  it('reads Indonesian and space thousands separators', () => {
+    expect(normalizeCount('1.240')).toBe(1240);
+    expect(normalizeCount('1.234.567')).toBe(1234567);
+    expect(normalizeCount('1 240')).toBe(1240);
+  });
+
+  it('expands the shorthand suffixes used in engagement counters', () => {
+    expect(normalizeCount('1.2K')).toBe(1200);
+    expect(normalizeCount('1,2 rb')).toBe(1200);
+    expect(normalizeCount('12rb')).toBe(12000);
+    expect(normalizeCount('3jt')).toBe(3000000);
+    expect(normalizeCount('1,25 juta')).toBe(1250000);
+  });
+
   it('refuses to guess at anything else, and never coerces to zero', () => {
-    for (const bad of ['1.2k', 'about 500', 'N/A', '', '12.5', '-5', null, undefined, {}]) {
+    for (const bad of ['about 500', 'N/A', '', '12.5', '1.240,5', '-5', null, undefined, {}]) {
       expect(normalizeCount(bad)).toBeNull();
     }
+  });
+
+  it('rejects counts that would overflow the integer column', () => {
+    expect(normalizeCount('2147483647')).toBe(2147483647);
+    expect(normalizeCount('2147483648')).toBeNull();
   });
 });
 
