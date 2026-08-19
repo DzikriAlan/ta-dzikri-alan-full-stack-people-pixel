@@ -1,9 +1,6 @@
 import { z } from 'zod';
+import { loadEnvFile } from './utils/load-env.js';
 
-/**
- * All configuration comes from the environment. Nothing is hard-coded and no
- * credential is committed; `.env.example` documents the expected variables.
- */
 const configSchema = z.object({
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
   PORT: z.coerce.number().int().positive().default(3000),
@@ -17,6 +14,7 @@ const configSchema = z.object({
 export type Config = z.infer<typeof configSchema>;
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
+  loadEnvFile();
   const parsed = configSchema.safeParse(env);
   if (!parsed.success) {
     const details = parsed.error.issues
