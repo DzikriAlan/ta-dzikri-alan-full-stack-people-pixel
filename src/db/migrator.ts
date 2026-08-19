@@ -6,16 +6,6 @@ interface FsLike {
   readFile(file: string, encoding: 'utf8'): Promise<string>;
 }
 
-/**
- * A deliberately small migration runner instead of a migration library: the SQL
- * files stay the single, reviewable source of truth for the schema, which is
- * what the assessment asks for. Each file runs once, inside a transaction, and
- * is recorded in `schema_migrations`.
- *
- * `pg_advisory_lock` makes concurrent runners (e.g. two test workers or a
- * restarting deployment) safe: the second one waits rather than applying the
- * same file twice.
- */
 const MIGRATION_LOCK_ID = 8_123_451;
 
 export async function runMigrations(

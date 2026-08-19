@@ -20,11 +20,6 @@ function body(code: string, message: string, details?: unknown): ErrorResponseBo
     : { error: { code, message, details } };
 }
 
-/**
- * Single place that turns any thrown value into a consistent error envelope.
- * Consumers never see SQL, connection strings or stack traces: unknown errors
- * are logged server-side and answered with an opaque 500.
- */
 export function registerErrorHandler(app: FastifyInstance): void {
   app.setNotFoundHandler((request: FastifyRequest, reply: FastifyReply) => {
     reply
@@ -45,11 +40,6 @@ export function registerErrorHandler(app: FastifyInstance): void {
       return;
     }
 
-    // Fastify rejects malformed JSON, wrong content types and oversized bodies
-    // before any handler runs. Each case is matched on its specific Fastify
-    // error code -- never on a bare `statusCode === 400`, which would mislabel
-    // every unrelated 400 as a JSON syntax error. Codes verified against
-    // Fastify 5 rather than assumed.
     switch (error.code) {
       case 'FST_ERR_CTP_INVALID_MEDIA_TYPE':
         reply

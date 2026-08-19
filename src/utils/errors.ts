@@ -1,8 +1,3 @@
-/**
- * Application-level errors that map to a deliberate HTTP status and a stable,
- * machine-readable `code`. Anything that is not an ApiError is treated as an
- * unexpected fault and reported as a generic 500 without internal detail.
- */
 export class ApiError extends Error {
   readonly statusCode: number;
   readonly code: string;

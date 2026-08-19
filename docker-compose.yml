@@ -1,5 +1,3 @@
-# Optional: only here to make a local PostgreSQL instance easy to start.
-# The application itself has no dependency on Docker.
 services:
   postgres:
     image: postgres:16-alpine
